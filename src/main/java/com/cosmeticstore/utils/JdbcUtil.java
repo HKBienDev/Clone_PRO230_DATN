@@ -9,9 +9,9 @@ import java.sql.Types;
 
 public class JdbcUtil {
 	static String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-	static String dburl = "jdbc:sqlserver://localhost:1433;database=polycoffee;encrypt=false";
+	static String dburl = "jdbc:sqlserver://localhost:1433;database=CosmeticStore;encrypt=false";
 	static String username = "sa";
-	static String password = "112009";
+	static String password = "12345";
 	// nạp driver
 	static {
 		try {
