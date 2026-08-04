@@ -1,9 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thêm Tin tức - WINX ENCHANTIX</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -34,7 +35,7 @@
         /* --- MAIN CONTENT STYLE --- */
         .main {
             flex: 1;
-            padding: 40px;
+            padding: 40px 20px;
             max-width: 1000px;
             margin: 0 auto;
         }
@@ -44,6 +45,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .topbar h1 {
@@ -114,6 +117,8 @@
             align-items: center;
             gap: 8px;
             transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
         }
 
         .btn-delete:hover {
@@ -166,11 +171,6 @@
             box-shadow: 0 0 8px rgba(255, 102, 163, 0.25);
         }
 
-        .form-group input[type="file"] {
-            font-size: 14px;
-            color: var(--gray-text);
-        }
-
         .image-preview {
             width: 220px;
             height: 140px;
@@ -178,7 +178,8 @@
             border-radius: 12px;
             border: 2px solid var(--border-color);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            margin-top: 10px;
+            margin-top: 12px;
+            display: none; /* Mặc định ẩn đi cho đến khi có link */
         }
     </style>
 </head>
@@ -208,53 +209,58 @@
     </div>
 
     <div class="card">
-        <form action="${pageContext.request.contextPath}/admin/news/create"
-              method="post"
-              enctype="multipart/form-data">
+        <form id="newsForm" 
+              action="${pageContext.request.contextPath}/admin/news/create"
+              method="post">
 
             <div class="form-group">
-                <label>
+                <label for="title">
                     <i class="fa fa-heading"></i> Tiêu đề
                 </label>
                 <input type="text"
+                       id="title"
                        name="title"
                        placeholder="Nhập tiêu đề tin tức..."
                        required>
             </div>
 
             <div class="form-group">
-                <label>
+                <label for="summary">
                     <i class="fa fa-align-left"></i> Tóm tắt
                 </label>
-                <textarea rows="3"
+                <textarea id="summary"
+                          rows="3"
                           name="summary"
                           placeholder="Nhập nội dung tóm tắt ngắn..."
                           required></textarea>
             </div>
 
             <div class="form-group">
-                <label>
+                <label for="content">
                     <i class="fa fa-file-lines"></i> Nội dung
                 </label>
-                <textarea rows="8"
+                <textarea id="content"
+                          rows="8"
                           name="content"
                           placeholder="Nhập nội dung chi tiết bài viết..."
                           required></textarea>
             </div>
 
+            <!-- NHẬP DÁN LINK HÌNH ẢNH -->
             <div class="form-group">
-                <label>
-                    <i class="fa fa-image"></i> Hình ảnh
+                <label for="photoUrl">
+                    <i class="fa fa-link"></i> Link hình ảnh (URL)
                 </label>
-                <input type="file"
-                       name="photo"
-                       accept="image/*"
-                       id="photo">
-                <br>
+                <input type="text"
+                       name="photoUrl"
+                       id="photoUrl"
+                       placeholder="Dán đường dẫn hình ảnh tại đây (vd: https://example.com/image.jpg)..."
+                       required>
+                
                 <img id="preview"
                      class="image-preview"
-                     src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600"
-                     alt="Preview">
+                     src=""
+                     alt="Xem trước hình ảnh bài viết">
             </div>
 
             <div style="display: flex; gap: 15px; margin-top: 25px;">
@@ -262,7 +268,7 @@
                     <i class="fa fa-floppy-disk"></i> Lưu bài viết
                 </button>
 
-                <button type="reset" class="btn-delete" style="border: none; cursor: pointer;">
+                <button type="reset" class="btn-delete">
                     <i class="fa fa-rotate"></i> Làm mới
                 </button>
             </div>
@@ -273,15 +279,34 @@
 </div>
 
 <script>
-    const photo = document.getElementById("photo");
-    const preview = document.getElementById("preview");
+    const photoUrlInput = document.getElementById("photoUrl");
+    const previewImage = document.getElementById("preview");
+    const newsForm = document.getElementById("newsForm");
 
-    photo.onchange = function () {
-        const file = this.files[0];
-        if (file) {
-            preview.src = URL.createObjectURL(file);
+    // Lắng nghe sự kiện người dùng dán hoặc gõ link vào ô input
+    photoUrlInput.addEventListener("input", function () {
+        const url = this.value.trim();
+        if (url) {
+            previewImage.src = url;
+            previewImage.style.display = "block"; // Hiện khung xem trước khi có chuỗi URL
+        } else {
+            previewImage.src = "";
+            previewImage.style.display = "none";  // Ẩn khung xem trước nếu để trống
         }
-    }
+    });
+
+    // Ẩn ảnh xem trước nếu link bị hỏng/lỗi tải ảnh
+    previewImage.addEventListener("error", function () {
+        this.style.display = "none";
+    });
+
+    // Khôi phục form về trạng thái ban đầu khi nhấn nút Làm mới (Reset)
+    newsForm.addEventListener("reset", function () {
+        setTimeout(() => {
+            previewImage.src = "";
+            previewImage.style.display = "none";
+        }, 0);
+    });
 </script>
 
 </body>

@@ -1,6 +1,5 @@
 package com.cosmeticstore.controller.admin;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
@@ -8,22 +7,20 @@ import java.util.List;
 import com.cosmeticstore.dao.NewsDAO;
 import entity.News;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Part;
 
 @WebServlet({
-        "/admin/news",
-        "/admin/news/add",
-        "/admin/news/edit",
-        "/admin/news/create",
-        "/admin/news/update",
-        "/admin/news/delete"
+    "/news",
+    "/admin/news",
+    "/admin/news/add",
+    "/admin/news/edit",
+    "/admin/news/create",
+    "/admin/news/update",
+    "/admin/news/delete"
 })
-@MultipartConfig
 public class NewsServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private final NewsDAO dao = new NewsDAO();
@@ -46,29 +43,38 @@ public class NewsServlet extends HttpServlet {
 
         String path = req.getServletPath();
 
-        // ================= DANH SÁCH =================
+        // ================= TRANG TIN TỨC KHÁCH HÀNG (PUBLIC) =================
+        if (path.equals("/news")) {
+            List<News> newsList = dao.findAll();
+            req.setAttribute("newsList", newsList);
+            
+            // Đặt biến cờ báo hiệu cho index.jsp biết cần ẩn sản phẩm & hiện tin tức
+            req.setAttribute("viewPage", "news");
+            
+            // Forward trực tiếp về file index.jsp chính của bạn
+            req.getRequestDispatcher("/index.jsp").forward(req, resp);
+            return;
+        }
+
+        // ================= DANH SÁCH ADMIN =================
         if (path.equals("/admin/news")) {
             String keyword = req.getParameter("keyword");
             List<News> list;
-            
-            // Xử lý tìm kiếm nếu người dùng nhập từ khóa
+
             if (keyword != null && !keyword.trim().isEmpty()) {
-                // Nếu NewsDAO của bạn có hàm searchByTitle thì bật dòng dưới lên:
-                // list = dao.searchByTitle(keyword.trim());
                 list = dao.findAll(); 
             } else {
                 list = dao.findAll();
             }
 
             req.setAttribute("items", list);
-            // Trỏ chính xác tới news.jsp (Thư mục webapp/WEB-INF/views/admin/news.jsp)
-            req.getRequestDispatcher("/WEB-INF/views/admin/news.jsp").forward(req, resp);
+            req.getRequestDispatcher("/views/admin/news.jsp").forward(req, resp);
             return;
         }
 
         // ================= THÊM (FORM) =================
         if (path.equals("/admin/news/add")) {
-            req.getRequestDispatcher("/WEB-INF/views/admin/add-news.jsp").forward(req, resp);
+            req.getRequestDispatcher("/views/admin/add-news.jsp").forward(req, resp);
             return;
         }
 
@@ -87,7 +93,7 @@ public class NewsServlet extends HttpServlet {
             }
 
             req.setAttribute("item", item);
-            req.getRequestDispatcher("/WEB-INF/views/admin/edit.jsp").forward(req, resp);
+            req.getRequestDispatcher("/views/admin/edit.jsp").forward(req, resp);
             return;
         }
 
@@ -117,16 +123,9 @@ public class NewsServlet extends HttpServlet {
             n.setSummary(req.getParameter("summary"));
             n.setContent(req.getParameter("content"));
 
-            Part part = req.getPart("photo");
-            if (part != null && part.getSize() > 0) {
-                String fileName = System.currentTimeMillis() + "_" + part.getSubmittedFileName();
-                String upload = getServletContext().getRealPath("/uploads");
-                File dir = new File(upload);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-                part.write(upload + File.separator + fileName);
-                n.setImage("/uploads/" + fileName);
+            String photoUrl = req.getParameter("photoUrl");
+            if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                n.setImage(photoUrl.trim());
             } else {
                 n.setImage("https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300");
             }
@@ -157,16 +156,9 @@ public class NewsServlet extends HttpServlet {
             n.setSummary(req.getParameter("summary"));
             n.setContent(req.getParameter("content"));
 
-            Part part = req.getPart("photo");
-            if (part != null && part.getSize() > 0) {
-                String fileName = System.currentTimeMillis() + "_" + part.getSubmittedFileName();
-                String upload = getServletContext().getRealPath("/uploads");
-                File dir = new File(upload);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-                part.write(upload + File.separator + fileName);
-                n.setImage("/uploads/" + fileName);
+            String photoUrl = req.getParameter("photoUrl");
+            if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                n.setImage(photoUrl.trim());
             } else {
                 n.setImage(old.getImage());
             }

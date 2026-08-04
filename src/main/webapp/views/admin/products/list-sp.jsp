@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="jakarta.tags.core"%>
+<%@taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -12,6 +13,7 @@
 
 <!-- Bootstrap 5 -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
 <style>
     :root {
@@ -70,7 +72,7 @@
         font-weight: 600;
         text-transform: uppercase;
         font-size: 0.9rem;
-        white-space: nowrap; /* Giữ tiêu đề không bị rớt dòng */
+        white-space: nowrap;
     }
 
     .table-hover tbody tr:hover {
@@ -82,9 +84,36 @@
         border-color: #ffe3ec;
     }
 
-    /* Chống rớt chữ/số cho cột Giá và Thao tác */
     .text-nowrap-custom {
         white-space: nowrap !important;
+    }
+
+    /* Định dạng ảnh sản phẩm */
+    .product-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 2px solid #ffe3ec;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease;
+    }
+
+    .product-img:hover {
+        transform: scale(1.15);
+    }
+
+    .img-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background-color: #f8f9fa;
+        border: 1px dashed #dee2e6;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #adb5bd;
+        font-size: 1.2rem;
     }
 
     /* Các Nút Bấm (Buttons) */
@@ -98,6 +127,7 @@
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(255, 117, 140, 0.3);
         white-space: nowrap;
+        text-decoration: none;
     }
 
     .btn-pink-add:hover {
@@ -115,6 +145,7 @@
         font-weight: 600;
         transition: all 0.2s ease;
         white-space: nowrap;
+        text-decoration: none;
     }
 
     .btn-pink-edit:hover {
@@ -131,6 +162,7 @@
         font-weight: 600;
         transition: all 0.2s ease;
         white-space: nowrap;
+        text-decoration: none;
     }
 
     .btn-pink-delete:hover {
@@ -147,6 +179,7 @@
         font-weight: 600;
         transition: all 0.3s ease;
         white-space: nowrap;
+        text-decoration: none;
     }
 
     .btn-home:hover {
@@ -170,11 +203,11 @@
         <!-- Thanh Thao Tác Đầu Trang -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <a href="product?action=new" class="btn btn-pink-add">
-                Thêm sản phẩm
+                <i class="fa-solid fa-plus me-1"></i> Thêm sản phẩm
             </a>
 
             <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-home">
-                Trang chủ
+                <i class="fa-solid fa-house me-1"></i> Trang chủ
             </a>
         </div>
 
@@ -183,9 +216,10 @@
 
                 <thead>
                     <tr class="table-pink-header text-center">
-                        <th style="width: 60px;">ID</th>
+                        <th style="width: 50px;">ID</th>
+                        <th style="width: 80px;">HÌNH ẢNH</th>
                         <th>TÊN SẢN PHẨM</th>
-                        <th style="min-width: 170px;">GIÁ</th>
+                        <th style="min-width: 140px;">GIÁ</th>
                         <th style="min-width: 100px;">SỐ LƯỢNG</th>
                         <th style="min-width: 80px;">LOẠI</th>
                         <th style="width: 90px;">SỬA</th>
@@ -201,31 +235,71 @@
 
                             <td class="text-center fw-bold">${p.productID}</td>
 
+                            <!-- HÌNH ẢNH SẢN PHẨM -->
+                            <td class="text-center">
+                                <c:choose>
+                                    <c:when test="${empty p.image}">
+                                        <div class="img-placeholder">
+                                            <i class="fa-regular fa-image"></i>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:choose>
+                                            <c:when test="${p.image.startsWith('http://') || p.image.startsWith('https://')}">
+                                                <c:set var="imgSrc" value="${p.image}" />
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:set var="imgSrc" value="${pageContext.request.contextPath}/${p.image}" />
+                                            </c:otherwise>
+                                        </c:choose>
+
+                                        <img src="${imgSrc}" 
+                                             alt="${p.productName}" 
+                                             class="product-img"
+                                             referrerpolicy="no-referrer"
+                                             onerror="this.onerror=null; this.src='https://via.placeholder.com/60?text=Error';">
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+
                             <td class="fw-semibold">${p.productName}</td>
 
-                            <td class="text-center text-danger fw-bold text-nowrap-custom">${p.price} VNĐ</td>
+                            <!-- HIỂN THỊ GIÁ VÀ GIÁ GIẢM -->
+                            <td class="text-center text-nowrap-custom">
+                                <c:choose>
+                                    <c:when test="${not empty p.discountPrice && p.discountPrice lt p.price}">
+                                        <div class="text-danger fw-bold">
+                                            <fmt:formatNumber value="${p.discountPrice}" type="number" groupingUsed="true"/> VNĐ
+                                        </div>
+                                        <div class="text-muted text-decoration-line-through small">
+                                            <fmt:formatNumber value="${p.price}" type="number" groupingUsed="true"/> VNĐ
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="text-danger fw-bold">
+                                            <fmt:formatNumber value="${p.price}" type="number" groupingUsed="true"/> VNĐ
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
 
                             <td class="text-center">${p.stockQuantity}</td>
 
                             <td class="text-center"><span class="badge bg-light text-dark border">${p.categoryID}</span></td>
 
                             <td class="text-center">
-
                                 <a href="product?action=edit&id=${p.productID}"
                                    class="btn btn-pink-edit btn-sm">
                                     Sửa
                                 </a>
-
                             </td>
 
                             <td class="text-center">
-
                                 <a href="product?action=delete&id=${p.productID}"
                                    class="btn btn-pink-delete btn-sm"
-                                   onclick="return confirm('Bạn có muốn xóa không?')">
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')">
                                     Xóa
                                 </a>
-
                             </td>
 
                         </tr>

@@ -23,7 +23,7 @@ public class JdbcUtil {
 	}
 
 	/** Mở kết nối */
-	private static Connection getConnection() throws SQLException {
+	public static Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(dburl, username, password);
 	}
 

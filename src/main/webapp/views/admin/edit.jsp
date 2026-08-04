@@ -1,5 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -132,19 +131,15 @@
         box-shadow: 0 0 8px rgba(255, 64, 129, 0.15);
     }
 
-    .form-group input[type="file"] {
-        padding: 10px 0;
-        color: #666;
-    }
-
     .image-preview {
-        width: 180px;
-        height: 120px;
+        width: 220px;
+        height: 140px;
         object-fit: cover;
         border-radius: 12px;
         border: 2px solid var(--border-color);
-        margin-top: 10px;
+        margin-top: 12px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        display: block;
     }
 
     .btn-delete {
@@ -158,6 +153,8 @@
         align-items: center;
         gap: 8px;
         transition: all 0.25s ease;
+        border: none;
+        cursor: pointer;
     }
 
     .btn-delete:hover {
@@ -185,39 +182,42 @@
 
     <div class="card">
 
-        <form action="${pageContext.request.contextPath}/admin/news/update"
-              method="post"
-              enctype="multipart/form-data">
+        <!-- Bỏ enctype="multipart/form-data" -->
+        <form id="editNewsForm" action="${pageContext.request.contextPath}/admin/news/update" method="post">
 
             <input type="hidden" name="id" value="${item.id}">
 
             <div class="form-group">
-                <label><i class="fa fa-heading"></i> Tiêu đề</label>
-                <input type="text" name="title" value="${item.title}" required>
+                <label for="title"><i class="fa fa-heading"></i> Tiêu đề</label>
+                <input type="text" id="title" name="title" value="${item.title}" required>
             </div>
 
             <div class="form-group">
-                <label><i class="fa fa-align-left"></i> Tóm tắt</label>
-                <textarea rows="3" name="summary" required>${item.summary}</textarea>
+                <label for="summary"><i class="fa fa-align-left"></i> Tóm tắt</label>
+                <textarea id="summary" rows="3" name="summary" required>${item.summary}</textarea>
             </div>
 
             <div class="form-group">
-                <label><i class="fa fa-file-lines"></i> Nội dung</label>
-                <textarea rows="8" name="content" required>${item.content}</textarea>
+                <label for="content"><i class="fa fa-file-lines"></i> Nội dung</label>
+                <textarea id="content" rows="8" name="content" required>${item.content}</textarea>
             </div>
 
+            <!-- Ô NHẬP LINK HÌNH ẢNH (URL) -->
             <div class="form-group">
-                <label><i class="fa fa-image"></i> Hình ảnh hiện tại</label>
-                <br>
+                <label for="photoUrl"><i class="fa fa-link"></i> Link hình ảnh (URL)</label>
+                <input type="text" 
+                       id="photoUrl" 
+                       name="photoUrl" 
+                       value="${item.image}" 
+                       placeholder="Dán đường dẫn hình ảnh tại đây..."
+                       required>
+
+                <!-- KHUNG XEM TRƯỚC HÌNH ẢNH -->
                 <img id="preview"
                      class="image-preview"
-                     src="${pageContext.request.contextPath}/${item.image}"
-                     onerror="this.src='https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600'">
-            </div>
-
-            <div class="form-group">
-                <label><i class="fa fa-camera"></i> Chọn ảnh mới</label>
-                <input id="photo" type="file" name="photo" accept="image/*">
+                     src="${item.image}"
+                     alt="Xem trước hình ảnh"
+                     onerror="this.style.display='none';">
             </div>
 
             <div style="display:flex; gap:15px; margin-top: 30px;">
@@ -225,8 +225,8 @@
                     <i class="fa fa-floppy-disk"></i> Cập nhật
                 </button>
 
-                <button type="reset" class="btn-delete" style="border:none; cursor:pointer;">
-                    <i class="fa fa-rotate"></i> Làm mới
+                <button type="reset" class="btn-delete">
+                    <i class="fa fa-rotate"></i> Khôi phục
                 </button>
             </div>
 
@@ -237,15 +237,40 @@
 </div>
 
 <script>
-const photo = document.getElementById("photo");
-const preview = document.getElementById("preview");
+    const photoUrlInput = document.getElementById("photoUrl");
+    const previewImage = document.getElementById("preview");
+    const editNewsForm = document.getElementById("editNewsForm");
+    const initialImageSrc = "${item.image}";
 
-photo.onchange = function(){
-    const file = this.files[0];
-    if(file){
-        preview.src = URL.createObjectURL(file);
-    }
-}
+    // Cập nhật khung xem trước hình ảnh thời gian thực khi dán/sửa link
+    photoUrlInput.addEventListener("input", function () {
+        const url = this.value.trim();
+        if (url) {
+            previewImage.src = url;
+            previewImage.style.display = "block";
+        } else {
+            previewImage.src = "";
+            previewImage.style.display = "none";
+        }
+    });
+
+    // Nếu ảnh bị lỗi/link hỏng thì tự ẩn khung preview
+    previewImage.addEventListener("error", function () {
+        this.style.display = "none";
+    });
+
+    // Khi nhấn nút Khôi phục (Reset), trả lại giá trị đường dẫn ảnh ban đầu
+    editNewsForm.addEventListener("reset", function () {
+        setTimeout(() => {
+            if (initialImageSrc) {
+                previewImage.src = initialImageSrc;
+                previewImage.style.display = "block";
+            } else {
+                previewImage.src = "";
+                previewImage.style.display = "none";
+            }
+        }, 0);
+    });
 </script>
 
 </body>

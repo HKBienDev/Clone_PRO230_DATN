@@ -244,7 +244,7 @@
         </li>
 
         <li>
-            <a href="${pageContext.request.contextPath}/admin/orderdetail">
+            <a href="${pageContext.request.contextPath}/admin/order">
                 <i class="fa fa-layer-group"></i> Đơn hàng
             </a>
         </li>
@@ -268,9 +268,9 @@
         </li>
 
         <li>
-            <a href="${pageContext.request.contextPath}/checkout">
-                <i class="fa fa-right-from-bracket"></i> Đăng xuất
-            </a>
+				<a href="${pageContext.request.contextPath}/logout">
+				    <i class="fa fa-right-from-bracket"></i> Đăng xuất
+				</a>
         </li>
 
     </ul>
@@ -282,7 +282,7 @@
 
     <div class="topbar">
         <div>
-            <h1>Dashboard</h1>
+            <h1>Trang chủ Admin</h1>
             <p>WINX ENCHANTIX ADMIN</p>
         </div>
     </div>

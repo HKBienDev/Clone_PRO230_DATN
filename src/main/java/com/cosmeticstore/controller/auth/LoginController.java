@@ -23,7 +23,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class LoginController extends HttpServlet {
 
         
         request.setAttribute("oldEmail", email);
-        request.setAttribute("errorMessage", "Sai email hoặc mật khẩu không đúng!");
-        request.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(request, response);
+        request.setAttribute("errorMessage", "Sai email hoặc mật khẩu không đúng");
+        request.getRequestDispatcher("/views/auth/login.jsp").forward(request, response);
     }
 }

@@ -16,34 +16,42 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/home")
+@WebServlet({"/home", ""})
 public class HomeCustomerServlet extends HttpServlet {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private ProductDao productDao = new ProductDao();
-    private CategoryDao categoryDao = new CategoryDao();
-    private NewsDAO newsDAO = new NewsDAO();
+	private ProductDao productDao = new ProductDao();
+	private CategoryDao categoryDao = new CategoryDao();
+	private NewsDAO newsDAO = new NewsDAO();
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        List<Product> products = productDao.findAll();
-        List<Category> categories = categoryDao.findAll();
-        List<News> newsList = newsDAO.findAll();
+		List<Product> products = productDao.findAll();
+		List<Category> categories = categoryDao.findAll();
+		
+		List<News> newsList = null;
+		try {
+			newsList = newsDAO.findAll();
+		} catch (Exception e) {
+			System.err.println("Chưa có bảng News trong DB, bỏ qua tin tức!");
+		}
 
-        request.setAttribute("products", products);
-        request.setAttribute("categories", categories);
-        request.setAttribute("newsList", newsList);
+		// Đánh dấu đang ở trang chủ
+		request.setAttribute("viewPage", "home");
 
-        request.getRequestDispatcher("/index.jsp").forward(request, response);
-    }
+		request.setAttribute("products", products);
+		request.setAttribute("categories", categories);
+		request.setAttribute("newsList", newsList);
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+		request.getRequestDispatcher("/index.jsp").forward(request, response);
+	}
 
-        doGet(request, response);
-    }
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
 }

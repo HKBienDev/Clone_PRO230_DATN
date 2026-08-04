@@ -8,11 +8,14 @@ import com.cosmeticstore.dao.CartDetailDao;
 
 import entity.Cart;
 import entity.CartDetail;
+import entity.Customer;
+import entity.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/cart")
 public class CartServlet extends HttpServlet {
@@ -21,6 +24,31 @@ public class CartServlet extends HttpServlet {
 
 	private CartDao cartDao = new CartDao();
 	private CartDetailDao cartDetailDao = new CartDetailDao();
+
+	// Hàm lấy ID khách hàng đang đăng nhập từ Session (giống hệt bên CheckoutServlet)
+	private Integer getCustomerIDFromSession(HttpSession session) {
+		if (session == null) return null;
+		
+		Object userObj = session.getAttribute("currentUser");
+		if (userObj == null) {
+			userObj = session.getAttribute("user");
+			if (userObj == null) userObj = session.getAttribute("customer");
+		}
+
+		if (userObj == null) {
+			return null;
+		}
+
+		if (userObj instanceof Customer) {
+			return ((Customer) userObj).getCustomerID();
+		}
+
+		if (userObj instanceof User) {
+			return ((User) userObj).getId(); 
+		}
+
+		return null;
+	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -33,6 +61,10 @@ public class CartServlet extends HttpServlet {
 		}
 
 		switch (action) {
+		case "add": 
+			addProduct(request, response);
+			break;
+
 		case "view":
 			viewCart(request, response);
 			break;
@@ -69,50 +101,67 @@ public class CartServlet extends HttpServlet {
 	private void viewCart(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		int customerID = 1; // test
+		HttpSession session = request.getSession();
+		Integer customerID = getCustomerIDFromSession(session);
 
-		Cart cart = cartDao.findByCustomerID(customerID);
+		if (customerID == null) {
+			response.sendRedirect(request.getContextPath() + "/login");
+			return;
+		}
+
+		// Sử dụng getCartByCustomerID để đảm bảo luôn lấy được giỏ hàng chính xác của tài khoản hiện tại
+		Cart cart = cartDao.getCartByCustomerID(customerID);
 
 		if (cart != null) {
 			List<CartDetail> list = cartDetailDao.findByCartID(cart.getCartID());
 			request.setAttribute("list", list);
 		}
-		request.getRequestDispatcher("/WEB-INF/views/customer/cart.jsp").forward(request, response);
+		request.getRequestDispatcher("/views/customer/cart.jsp").forward(request, response);
 	}
 
 	private void addProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-		int customerID = 1;
-		int productID = Integer.parseInt(request.getParameter("productID"));
+		HttpSession session = request.getSession();
+		Integer customerID = getCustomerIDFromSession(session);
 
-		Cart cart = cartDao.findByCustomerID(customerID);
-
-		if (cart == null) {
-			cart = new Cart();
-			cart.setCustomerID(customerID);
-			cartDao.create(cart);
-			cart = cartDao.findByCustomerID(customerID);
+		if (customerID == null) {
+			response.sendRedirect(request.getContextPath() + "/login");
+			return;
 		}
 
-		CartDetail detail = cartDetailDao.findByCartAndProduct(cart.getCartID(), productID);
+		String productIDStr = request.getParameter("productID");
 
-		if (detail == null) {
-			detail = new CartDetail();
-			detail.setCartID(cart.getCartID());
-			detail.setProductID(productID);
-			detail.getQuantity(); 
-			detail.setQuantity(1);
+		if (productIDStr != null && !productIDStr.isEmpty()) {
+			int productID = Integer.parseInt(productIDStr);
 
-			cartDetailDao.create(detail);
+			// Lấy giỏ hàng chuẩn của tài khoản hiện tại (tự động tạo nếu chưa có)
+			Cart cart = cartDao.getCartByCustomerID(customerID);
+
+			if (cart != null) {
+				CartDetail detail = cartDetailDao.findByCartAndProduct(cart.getCartID(), productID);
+
+				if (detail == null) {
+					detail = new CartDetail();
+					detail.setCartID(cart.getCartID());
+					detail.setProductID(productID);
+					detail.setQuantity(1); 
+
+					cartDetailDao.create(detail);
+				} else {
+					cartDetailDao.increaseQuantity(cart.getCartID(), productID);
+				}
+			}
+		}
+
+		String requestedWith = request.getHeader("X-Requested-With");
+		if ("XMLHttpRequest".equals(requestedWith) || request.getHeader("Accept").contains("application/json")) {
+			response.setStatus(HttpServletResponse.SC_OK);
 		} else {
-			cartDetailDao.increaseQuantity(cart.getCartID(), productID);
+			response.sendRedirect(request.getContextPath() + "/cart?action=view");
 		}
-
-		response.sendRedirect(request.getContextPath() + "/cart?action=view");
 	}
 
 	private void increaseQuantity(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
 		int cartID = Integer.parseInt(request.getParameter("cartID"));
 		int productID = Integer.parseInt(request.getParameter("productID"));
 
@@ -122,14 +171,12 @@ public class CartServlet extends HttpServlet {
 	}
 
 	private void decreaseQuantity(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
 		int cartID = Integer.parseInt(request.getParameter("cartID"));
 		int productID = Integer.parseInt(request.getParameter("productID"));
 
 		CartDetail detail = cartDetailDao.findByCartAndProduct(cartID, productID);
 
 		if (detail != null) {
-
 			if (detail.getQuantity() > 1) {
 				cartDetailDao.updateQuantity(cartID, productID, detail.getQuantity() - 1);
 			} else {
@@ -141,7 +188,6 @@ public class CartServlet extends HttpServlet {
 	}
 
 	private void removeProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
 		CartDetail detail = new CartDetail();
 
 		detail.setCartID(Integer.parseInt(request.getParameter("cartID")));

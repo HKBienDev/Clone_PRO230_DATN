@@ -17,7 +17,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             color: var(--text-color);
         }
 
@@ -29,6 +29,7 @@
             box-shadow: 0 8px 24px rgba(255, 105, 180, 0.3);
             box-sizing: border-box;
             text-align: center;
+            margin: 20px 0;
         }
 
         h2 {
@@ -123,14 +124,20 @@
         <form action="${pageContext.request.contextPath}/register" method="post">
             <div class="form-group">
                 <label>Họ và tên</label>
-                <input type="text" name="name" required placeholder="Nhập họ tên...">
+                <input type="text" name="name" value="${param.name}" required placeholder="Nhập họ tên...">
             </div>
 
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email" required placeholder="Nhập email...">
+                <input type="email" name="email" value="${param.email}" required placeholder="Nhập email...">
             </div>
             
+            <!-- THÊM Ô NHẬP SỐ ĐIỆN THOẠI -->
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input type="tel" name="phone" value="${param.phone}" required placeholder="Nhập số điện thoại...">
+            </div>
+
             <div class="form-group">
                 <label>Mật khẩu</label>
                 <input type="password" name="password" required placeholder="Nhập mật khẩu...">

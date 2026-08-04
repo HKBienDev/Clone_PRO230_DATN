@@ -4,15 +4,17 @@ import java.io.IOException;
 import java.util.List;
 
 import com.cosmeticstore.dao.OrderDao;
+import com.cosmeticstore.dao.OrderDetailDao; // Nhớ import OrderDetailDao
 
 import entity.Order;
+import entity.OrderDetail;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/order")
+@WebServlet("/admin/order")
 public class OrderServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -35,6 +37,18 @@ public class OrderServlet extends HttpServlet {
 			listOrder(request, response);
 			break;
 
+		case "detail":
+			viewOrderDetail(request, response);
+			break;
+
+		case "approve":
+			approveOrder(request, response);
+			break;
+
+		case "cancel":
+			cancelOrder(request, response);
+			break;
+
 		case "delete":
 			deleteOrder(request, response);
 			break;
@@ -53,26 +67,87 @@ public class OrderServlet extends HttpServlet {
 		String action = request.getParameter("action");
 
 		if ("add".equals(action)) {
-
 			addOrder(request, response);
-
 		} else if ("update".equals(action)) {
-
 			updateOrder(request, response);
-
 		}
 
 	}
 
+	// 1. Hàm hiển thị DANH SÁCH ĐƠN HÀNG (Chuyển sang orders.jsp)
 	private void listOrder(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		List<Order> list = dao.findAll();
+		try {
+			List<Order> list = dao.findAll();
+			request.setAttribute("list", list);
+			
+			// ĐÃ SỬA: Chuyển hướng sang orders.jsp (không phải orderdetail.jsp)
+			request.getRequestDispatcher("/views/admin/orders.jsp").forward(request, response);
 
-		request.setAttribute("list", list);
+		} catch (Exception e) {
+			e.printStackTrace();
+			// Chống trắng trang: Hiển thị thông báo lỗi ra trình duyệt nếu có Exception
+			response.setContentType("text/html;charset=UTF-8");
+			response.getWriter().println("<h3>Lỗi khi tải danh sách đơn hàng: " + e.getMessage() + "</h3>");
+		}
 
-		request.getRequestDispatcher("/views/bill/Order.jsp").forward(request, response);
+	}
 
+	// 2. Hàm hiển thị CHI TIẾT CỦA 1 ĐƠN HÀNG (Chuyển sang orderdetail.jsp)
+	private void viewOrderDetail(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		try {
+			int orderID = Integer.parseInt(request.getParameter("orderID"));
+
+			// Lấy thông tin đơn hàng
+			Order order = dao.findById(orderID);
+
+			// Lấy danh sách sản phẩm trong đơn hàng
+			OrderDetailDao detailDao = new OrderDetailDao();
+			List<OrderDetail> list = detailDao.findByOrderID(orderID); // Hoặc hàm lấy chi tiết trong DAO của bạn
+
+			request.setAttribute("order", order);
+			request.setAttribute("orderID", orderID);
+			request.setAttribute("list", list);
+
+			request.getRequestDispatcher("/views/admin/orderdetail.jsp").forward(request, response);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setContentType("text/html;charset=UTF-8");
+			response.getWriter().println("<h3>Lỗi khi tải chi tiết đơn hàng: " + e.getMessage() + "</h3>");
+		}
+
+	}
+
+	private void approveOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	    try {
+	        String idStr = request.getParameter("orderID");
+	        if (idStr != null && !idStr.isEmpty()) {
+	            int orderID = Integer.parseInt(idStr);
+	            // Đổi thành "Approved" cho đúng CHECK constraint của Database
+	            dao.updateStatus(orderID, "Approved");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    response.sendRedirect(request.getContextPath() + "/admin/order?action=list");
+	}
+
+	private void cancelOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	    try {
+	        String idStr = request.getParameter("orderID");
+	        if (idStr != null && !idStr.isEmpty()) {
+	            int orderID = Integer.parseInt(idStr);
+	            // Đổi thành "Cancelled" cho đúng CHECK constraint của Database
+	            dao.updateStatus(orderID, "Cancelled");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    response.sendRedirect(request.getContextPath() + "/admin/order?action=list");
 	}
 
 	private void addOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -85,8 +160,7 @@ public class OrderServlet extends HttpServlet {
 		order.setStatus(request.getParameter("status"));
 
 		dao.create(order);
-
-		response.sendRedirect("order?action=list");
+		response.sendRedirect(request.getContextPath() + "/admin/order?action=list");
 
 	}
 
@@ -99,7 +173,7 @@ public class OrderServlet extends HttpServlet {
 
 		dao.update(order);
 
-		response.sendRedirect("order?action=list");
+		response.sendRedirect(request.getContextPath() + "/admin/order?action=list");
 
 	}
 
@@ -111,7 +185,7 @@ public class OrderServlet extends HttpServlet {
 
 		dao.delete(order);
 
-		response.sendRedirect("order?action=list");
+		response.sendRedirect(request.getContextPath() + "/admin/order?action=list");
 
 	}
 

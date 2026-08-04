@@ -1,15 +1,17 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions"%>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi Tiết Đơn Hàng | WINX ENCHANTIX</title>
-    <!-- Bootstrap 5 -->
+    <title>Quản Lý Đơn Hàng | WINX ENCHANTIX</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
     <style>
@@ -82,7 +84,27 @@
             color: #880e4f;
         }
 
-        /* Styling nút thao tác nhỏ gọn */
+        .btn-detail {
+            background: var(--pink-gradient);
+            color: #ffffff;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(255, 117, 140, 0.3);
+        }
+
+        .btn-detail:hover {
+            opacity: 0.9;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
         .btn-action-confirm {
             display: inline-flex;
             align-items: center;
@@ -121,26 +143,6 @@
             transform: translateY(-2px);
         }
 
-        .btn-action-delete {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            text-decoration: none;
-            background-color: #fff3e0;
-            color: #ef6c00;
-            transition: all 0.2s ease;
-        }
-
-        .btn-action-delete:hover {
-            background-color: #ef6c00;
-            color: #ffffff;
-            transform: translateY(-2px);
-        }
-
-        /* Badge Trạng thái */
         .badge-status {
             font-size: 13px;
             padding: 6px 12px;
@@ -154,64 +156,62 @@
 <div class="container">
     <div class="main-card">
         
+        <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div></div>
-            <h2 class="page-title text-center m-0">CHI TIẾT ĐƠN HÀNG</h2>
-            <a href="${pageContext.request.contextPath}/admin/order" class="btn btn-home">
-                <i class="fa-solid fa-arrow-left me-1"></i> Quản Lý Đơn Hàng
+            <h2 class="page-title text-center m-0">DANH SÁCH ĐƠN HÀNG</h2>
+            <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-home">
+                <i class="fa-solid fa-arrow-left me-1"></i> Trang chủ
             </a>
         </div>
 
-        <!-- Bảng Danh Sách Chi Tiết Đơn Hàng -->
+        <!-- BẢNG ĐƠN HÀNG -->
         <div class="table-responsive">
             <table class="table table-bordered table-hover align-middle">
                 <thead>
                     <tr class="table-pink-header text-center">
-                        <th>MÃ ĐƠN</th>
-                        <th>SẢN PHẨM</th>
-                        <th>SỐ LƯỢNG</th>
-                        <th>ĐƠN GIÁ</th>
-                        <th>THÀNH TIỀN</th>
-                        <th>TRẠNG THÁI</th>
-                        <th>THAO TÁC</th>
+                        <th style="width: 10%">MÃ ĐƠN</th>
+                        <th style="width: 20%">KHÁCH HÀNG</th>
+                        <th style="width: 20%">TỔNG TIỀN</th>
+                        <th style="width: 20%">TRẠNG THÁI</th>
+                        <th style="width: 15%">CHI TIẾT</th>
+                        <th style="width: 15%">THAO TÁC</th>
                     </tr>
                 </thead>
                 <tbody>
                     <c:choose>
                         <c:when test="${empty list}">
                             <tr>
-                                <td colspan="7" class="text-center text-muted">Không có dữ liệu chi tiết đơn hàng.</td>
+                                <td colspan="6" class="text-center text-muted py-4">Chưa có đơn hàng nào trong hệ thống.</td>
                             </tr>
                         </c:when>
                         <c:otherwise>
-                            <c:forEach items="${list}" var="od">
-                                <!-- Lấy trạng thái riêng của từng món od.status -->
-                                <c:set var="statusVal" value="${not empty od.status ? od.status : orderStatus}" />
+                            <c:forEach items="${list}" var="ord">
+                                <!-- XỬ LÝ CHUỖI TRẠNG THÁI (TRÁNH LỖI KHOẢNG TRẮNG CỦA SQL) -->
+                                <c:set var="rawStatus" value="${ord.status != null ? fn:trim(ord.status) : 'Pending'}" />
+                                <c:set var="statusLower" value="${fn:toLowerCase(rawStatus)}" />
 
                                 <tr>
-                                    <td class="text-center fw-bold">#${od.orderID}</td>
-                                    <td class="text-center">${od.productID}</td>
-                                    <td class="text-center">${od.quantity}</td>
-
-                                    <!-- 1. ĐỊNH DẠNG GIÁ TIỀN chuẩn Việt Nam (650.000 VNĐ) -->
-                                    <td class="text-center text-muted">
-                                        <fmt:formatNumber value="${od.unitPrice}" type="number" groupingUsed="true"/> VNĐ
-                                    </td>
+                                    <!-- MÃ ĐƠN -->
+                                    <td class="text-center fw-bold">#${ord.orderID}</td>
                                     
-                                    <!-- 2. THÀNH TIỀN (1.300.000 VNĐ) -->
+                                    <!-- MÃ KHÁCH HÀNG -->
+                                    <td class="text-center">Khách hàng #${ord.customerID}</td>
+                                    
+                                    <!-- TỔNG TIỀN -->
                                     <td class="text-center text-danger fw-bold">
-                                        <fmt:formatNumber value="${od.quantity * od.unitPrice}" type="number" groupingUsed="true"/> VNĐ
+                                        <fmt:formatNumber value="${ord.totalAmount}" type="number" groupingUsed="true"/> VNĐ
                                     </td>
 
-                                    <!-- 3. HIỂN THỊ TRẠNG THÁI TỪNG MÓN -->
+                                    <!-- TRẠNG THÁI (CẢ TIẾNG ANH & TIẾNG VIỆT) -->
                                     <td class="text-center">
                                         <c:choose>
-                                            <c:when test="${statusVal == 'Completed' || statusVal == 'Đã xác nhận'}">
+                                            <c:when test="${statusLower == 'approved' || statusLower == 'completed' || rawStatus == 'Đã xác nhận' || rawStatus == 'Đã duyệt'}">
                                                 <span class="badge bg-success badge-status">
                                                     <i class="fa-solid fa-circle-check me-1"></i>Đã xác nhận
                                                 </span>
                                             </c:when>
-                                            <c:when test="${statusVal == 'Cancelled' || statusVal == 'Đã hủy'}">
+                                            <c:when test="${statusLower == 'cancelled' || rawStatus == 'Đã hủy'}">
                                                 <span class="badge bg-danger badge-status">
                                                     <i class="fa-solid fa-circle-xmark me-1"></i>Đã hủy
                                                 </span>
@@ -224,37 +224,36 @@
                                         </c:choose>
                                     </td>
 
-                                    <!-- 4. THAO TÁC TRÊN TỪNG SẢN PHẨM (Truyền cả orderID và productID) -->
+                                    <!-- NÚT XEM CHI TIẾT -->
+                                    <td class="text-center">
+                                        <a href="${pageContext.request.contextPath}/admin/order?action=detail&orderID=${ord.orderID}" class="btn-detail">
+                                            <i class="fa-solid fa-eye"></i> Xem chi tiết
+                                        </a>
+                                    </td>
+
+                                    <!-- THAO TÁC DUYỆT / HỦY -->
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
                                             
-                                            <!-- Nút XÁC NHẬN MÓN NÀY -->
-                                            <c:if test="${statusVal != 'Completed' && statusVal != 'Đã xác nhận' && statusVal != 'Cancelled' && statusVal != 'Đã hủy'}">
-                                                <a href="${pageContext.request.contextPath}/admin/orderdetail?action=updateItemStatus&orderID=${od.orderID}&productID=${od.productID}&status=Completed" 
+                                            <!-- Nút XÁC NHẬN (Ẩn khi đơn đã duyệt) -->
+                                            <c:if test="${statusLower != 'approved' && statusLower != 'completed' && rawStatus != 'Đã xác nhận' && rawStatus != 'Đã duyệt'}">
+                                                <a href="${pageContext.request.contextPath}/admin/order?action=approve&orderID=${ord.orderID}" 
                                                    class="btn-action-confirm" 
-                                                   onclick="return confirm('Xác nhận sản phẩm #${od.productID} trong đơn #${od.orderID}?')" 
-                                                   title="Xác nhận món này">
+                                                   onclick="return confirm('Bạn có chắc chắn muốn duyệt đơn hàng #${ord.orderID}?')" 
+                                                   title="Duyệt đơn hàng">
                                                     <i class="fa-solid fa-check"></i>
                                                 </a>
                                             </c:if>
 
-                                            <!-- Nút HỦY MÓN NÀY -->
-                                            <c:if test="${statusVal != 'Cancelled' && statusVal != 'Đã hủy'}">
-                                                <a href="${pageContext.request.contextPath}/admin/orderdetail?action=updateItemStatus&orderID=${od.orderID}&productID=${od.productID}&status=Cancelled" 
+                                            <!-- Nút HỦY (Ẩn khi đơn đã hủy) -->
+                                            <c:if test="${statusLower != 'cancelled' && rawStatus != 'Đã hủy'}">
+                                                <a href="${pageContext.request.contextPath}/admin/order?action=cancel&orderID=${ord.orderID}" 
                                                    class="btn-action-cancel" 
-                                                   onclick="return confirm('Hủy sản phẩm #${od.productID} trong đơn #${od.orderID}?')" 
-                                                   title="Hủy món này">
+                                                   onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng #${ord.orderID}?')" 
+                                                   title="Hủy đơn hàng">
                                                     <i class="fa-solid fa-xmark"></i>
                                                 </a>
                                             </c:if>
-
-                                            <!-- Nút XÓA MÓN NÀY -->
-                                            <a href="${pageContext.request.contextPath}/admin/orderdetail?action=delete&orderID=${od.orderID}&productID=${od.productID}" 
-                                               class="btn-action-delete" 
-                                               onclick="return confirm('Xóa sản phẩm này khỏi đơn hàng?')" 
-                                               title="Xóa món này">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </a>
 
                                         </div>
                                     </td>

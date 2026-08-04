@@ -56,7 +56,7 @@ public class RevenueServlet extends HttpServlet {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		req.getRequestDispatcher("/WEB-INF/views/admin/revenue.jsp").forward(req, resp);
+		req.getRequestDispatcher("/views/admin/revenue.jsp").forward(req, resp);
 	}
 
 	@Override

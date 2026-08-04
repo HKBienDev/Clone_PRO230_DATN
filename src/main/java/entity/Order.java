@@ -1,21 +1,22 @@
 package entity;
 
 import java.util.Date;
+import java.util.List;
 
 public class Order {
 
 	private int orderID;
 	private Date orderDate;
 	private int customerID;
-	private int employeeID;
+	private Integer employeeID; // Đã đổi từ 'int' sang 'Integer' để cho phép nhận giá trị null
 	private double totalAmount;
 	private String status;
+	private List<OrderDetail> orderDetails;
 
 	public Order() {
 	}
 
-	public Order(int orderID, Date orderDate, int customerID, int employeeID, double totalAmount, String status) {
-
+	public Order(int orderID, Date orderDate, int customerID, Integer employeeID, double totalAmount, String status) {
 		this.orderID = orderID;
 		this.orderDate = orderDate;
 		this.customerID = customerID;
@@ -48,11 +49,11 @@ public class Order {
 		this.customerID = customerID;
 	}
 
-	public int getEmployeeID() {
+	public Integer getEmployeeID() {
 		return employeeID;
 	}
 
-	public void setEmployeeID(int employeeID) {
+	public void setEmployeeID(Integer employeeID) {
 		this.employeeID = employeeID;
 	}
 
@@ -70,5 +71,13 @@ public class Order {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+	
+	public List<OrderDetail> getOrderDetails() {
+	    return orderDetails;
+	}
+
+	public void setOrderDetails(List<OrderDetail> orderDetails) {
+	    this.orderDetails = orderDetails;
 	}
 }

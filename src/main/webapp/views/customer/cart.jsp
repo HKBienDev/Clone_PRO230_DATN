@@ -1,4 +1,5 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 
@@ -10,8 +11,11 @@
 <title>Giỏ hàng | WINX ENCHANTIX</title>
 
 <!-- Font Google & FontAwesome Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link
+	href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+	rel="stylesheet">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
 <style>
 :root {
@@ -73,7 +77,7 @@ h2::after {
 /* Bảng giỏ hàng */
 .table-responsive {
 	overflow-x: auto;
-	margin-bottom: 25px;
+	margin-bottom: 20px;
 }
 
 table {
@@ -158,11 +162,37 @@ tbody td {
 	font-weight: 700;
 }
 
-/* Nút Thanh toán */
+/* Khung điều hướng & Nút bấm */
 .checkout-box {
 	display: flex;
-	justify-content: flex-end;
-	margin-top: 15px;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 20px;
+	gap: 15px;
+	flex-wrap: wrap;
+}
+
+.btn-back {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--pink-dark);
+	background: var(--pink-soft);
+	border: 1px solid #ffccd5;
+	padding: 13px 24px;
+	font-size: 15px;
+	font-weight: 600;
+	border-radius: 12px;
+	text-decoration: none;
+	transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+	background: var(--pink-gradient);
+	color: #ffffff;
+	border-color: transparent;
+	transform: translateY(-2px);
+	box-shadow: 0 6px 15px rgba(255, 117, 140, 0.2);
 }
 
 .btn-checkout {
@@ -173,14 +203,18 @@ tbody td {
 	font-size: 15px;
 	font-weight: 600;
 	border-radius: 12px;
-	cursor: pointer;
+	text-decoration: none;
 	box-shadow: 0 6px 15px rgba(255, 117, 140, 0.3);
 	transition: all 0.3s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
 }
 
 .btn-checkout:hover {
 	transform: translateY(-2px);
 	box-shadow: 0 8px 20px rgba(255, 117, 140, 0.4);
+	color: #ffffff;
 }
 
 .empty-msg {
@@ -197,7 +231,8 @@ tbody td {
 		<h2>GIỎ HÀNG</h2>
 
 		<div class="table-responsive">
-			<table border="1" style="width: 100%; border-collapse: collapse; text-align: center;">
+			<table border="1"
+				style="width: 100%; border-collapse: collapse; text-align: center;">
 				<thead>
 					<tr>
 						<th>Mã giỏ</th>
@@ -219,18 +254,20 @@ tbody td {
 								<tr>
 									<td style="font-weight: 600; color: #666;">${item.cartID}</td>
 									<td>${item.productID}</td>
-									<td>
-										<a href="${pageContext.request.contextPath}/cart?action=decrease&cartID=${item.cartID}&productID=${item.productID}" class="qty-btn">-</a>
-										<span style="font-weight: 600; font-size: 15px;">${item.quantity}</span>
-										<a href="${pageContext.request.contextPath}/cart?action=increase&cartID=${item.cartID}&productID=${item.productID}" class="qty-btn">+</a>
+									<td><a
+										href="${pageContext.request.contextPath}/cart?action=decrease&cartID=${item.cartID}&productID=${item.productID}"
+										class="qty-btn">-</a> <span
+										style="font-weight: 600; font-size: 15px;">${item.quantity}</span>
+										<a
+										href="${pageContext.request.contextPath}/cart?action=increase&cartID=${item.cartID}&productID=${item.productID}"
+										class="qty-btn">+</a></td>
+									<td class="price-text"><fmt:formatNumber
+											value="${item.price}" type="currency" currencySymbol="VNĐ" />
 									</td>
-									<td class="price-text">
-										<fmt:formatNumber value="${item.price}" type="currency" currencySymbol="VNĐ"/>
-									</td>
-									<td>
-										<a href="${pageContext.request.contextPath}/cart?action=remove&cartID=${item.cartID}&productID=${item.productID}" 
-										   onclick="return confirm('Bạn có muốn xóa sản phẩm này khỏi giỏ?');" class="btn-delete">Xóa</a>
-									</td>
+									<td><a
+										href="${pageContext.request.contextPath}/cart?action=remove&cartID=${item.cartID}&productID=${item.productID}"
+										onclick="return confirm('Bạn có muốn xóa sản phẩm này khỏi giỏ?');"
+										class="btn-delete">Xóa</a></td>
 								</tr>
 							</c:forEach>
 						</c:otherwise>
@@ -239,11 +276,19 @@ tbody td {
 			</table>
 		</div>
 
-		<!-- Nút Thanh toán -->
+		<!-- Nút Quay lại trang chủ & Nút Chuyển sang Trang Thanh Toán -->
 		<div class="checkout-box">
-			<form action="${pageContext.request.contextPath}/checkout" method="post">
-				<button type="submit" class="btn-checkout">Thanh toán ngay <i class="fa-solid fa-arrow-right style="margin-left: 5px;""></i></button>
-			</form>
+			<a href="${pageContext.request.contextPath}/home"
+				class="btn-back"> <i class="fa-solid fa-arrow-left"></i> Tiếp
+				tục mua sắm
+			</a>
+
+			<c:if test="${not empty list}">
+				<!-- Đổi nút submit thành thẻ <a> để chuyển hướng trực tiếp sang trang Checkout -->
+				<a href="${pageContext.request.contextPath}/checkout" class="btn-checkout">
+					Đặt hàng <i class="fa-solid fa-arrow-right"></i>
+				</a>
+			</c:if>
 		</div>
 
 	</div>

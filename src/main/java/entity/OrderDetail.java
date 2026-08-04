@@ -6,6 +6,11 @@ public class OrderDetail {
 	private int quantity;
 	private double unitPrice;
 	private String status;
+	private Product product;
+
+	// --- BỔ SUNG 2 THUỘC TÍNH MỚI NÀY ---
+	private String productName;
+	private String customerName;
 
 	public OrderDetail() {
 	}
@@ -48,5 +53,31 @@ public class OrderDetail {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	// --- GETTER VÀ SETTER CHO PRODUCT NAME ---
+	public String getProductName() {
+		return productName;
+	}
+
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+
+	// --- GETTER VÀ SETTER CHO CUSTOMER NAME ---
+	public String getCustomerName() {
+		return customerName;
+	}
+
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
+	}
+	
+	public Product getProduct() {
+	    return product;
+	}
+
+	public void setProduct(Product product) {
+	    this.product = product;
 	}
 }

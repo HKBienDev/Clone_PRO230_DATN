@@ -16,7 +16,7 @@ public class RegisterController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/register.jsp").forward(request, response);
     }
 
     @Override
@@ -24,33 +24,41 @@ public class RegisterController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String name = request.getParameter("name");
         String email = request.getParameter("email");
+        String phone = request.getParameter("phone"); // Lấy số điện thoại từ form
         String password = request.getParameter("password"); 
 
         try {
+            // 1. Kiểm tra Email đã tồn tại chưa
             String checkSql = "SELECT CustomerID FROM Customer WHERE Email = ?";
             ResultSet rs = JdbcUtil.executeQuery(checkSql, email);
             
             if (rs.next()) {
                 rs.getStatement().getConnection().close(); 
                 request.setAttribute("error", "Email này đã được sử dụng");
-                request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
+                request.getRequestDispatcher("/views/auth/register.jsp").forward(request, response);
                 return;
             }
             rs.getStatement().getConnection().close();
-            String insertSql = "INSERT INTO Customer (CustomerName, Phone, Address, Email) VALUES (?, '0000000000', N'Chưa cập nhật', ?)";
-            int rowsAffected = JdbcUtil.executeUpdate(insertSql, name, email);
+
+            // 2. Thêm vào CSDL bao gồm cả số điện thoại (Phone)
+            String insertSql = "INSERT INTO Customer (CustomerName, Phone, Address, Email, Password) VALUES (?, ?, N'Chưa cập nhật', ?, ?)";
+            
+            // Truyền đủ 4 tham số: name, phone, email, password
+            int rowsAffected = JdbcUtil.executeUpdate(insertSql, name, phone, email, password);
 
             if (rowsAffected > 0) {
-                request.setAttribute("success", "Đăng ký thành viên WINX thành công!");
+                // ĐĂNG KÝ THÀNH CÔNG: Chuyển hướng thẳng sang trang đăng nhập
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
             } else {
-                request.setAttribute("error", "Đăng ký thất bại, vui lòng thử lại.");
+                request.setAttribute("error", "Đăng ký thất bại, vui lòng thử lại");
+                request.getRequestDispatcher("/views/auth/register.jsp").forward(request, response);
             }
-            request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
+            request.getRequestDispatcher("/views/auth/register.jsp").forward(request, response);
         }
     }
 }

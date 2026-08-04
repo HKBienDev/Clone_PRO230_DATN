@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.List, entity.User" %>
+<%@ page import="java.util.List, entity.User, entity.Customer" %>
 <html>
 <head>
     <title>Quản lý người dùng - Cửa hàng WINX</title>
@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             background-color: #ffffff;
             padding: 35px;
@@ -49,6 +49,16 @@
             font-size: 24px;
             font-weight: 700;
             letter-spacing: 0.5px;
+        }
+
+        .section-title {
+            color: #d81b60;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary-pink);
+            padding-left: 10px;
         }
 
         /* Nút Quay lại Admin Dashboard */
@@ -91,11 +101,12 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            margin-bottom: 20px;
             background-color: #ffffff;
         }
 
         th, td {
-            padding: 14px 18px;
+            padding: 14px 14px;
             text-align: left;
             border-bottom: 1px solid #ffe4e1;
             font-size: 15px;
@@ -118,20 +129,53 @@
             color: #2b2b2b;
         }
 
+        .action-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-promote {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-promote:hover {
+            background-color: #c8e6c9;
+            color: #1b5e20;
+        }
+
         .btn-delete {
+            background-color: #ffebee;
             color: #c62828;
             text-decoration: none;
             font-weight: 600;
-            font-size: 14px;
-            padding: 6px 12px;
+            font-size: 13px;
+            padding: 6px 10px;
             border-radius: 6px;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .btn-delete:hover {
-            background-color: #ffebee;
+            background-color: #ffcdd2;
             color: #b71c1c;
-            text-decoration: underline;
+        }
+        
+        .badge-role {
+            background-color: #ffe4e1;
+            color: #d81b60;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -148,19 +192,69 @@
         </div>
     </div>
 
+    <!-- DANH SÁCH KHÁCH HÀNG -->
+    <div class="section-title">DANH SÁCH KHÁCH HÀNG</div>
     <table>
         <thead>
             <tr>
-                <th style="width: 10%">ID</th>
-                <th style="width: 40%">Tên người dùng</th>
-                <th style="width: 35%">Email</th>
-                <th style="width: 15%">Phép thuật</th>
+                <th style="width: 8%">ID</th>
+                <th style="width: 28%">Tên khách hàng</th>
+                <th style="width: 24%">Email</th>
+                <th style="width: 15%">Số điện thoại</th>
+                <th style="width: 25%">Phép thuật</th>
+            </tr>
+        </thead>
+        <tbody>
+            <%
+                List<Customer> customerList = (List<Customer>) request.getAttribute("customerList");
+                if (customerList != null && !customerList.isEmpty()) {
+                    for (Customer c : customerList) {
+            %>
+            <tr>
+                <td><%= c.getCustomerID() %></td>
+                <td><strong><%= c.getCustomerName() %></strong></td>
+                <td><%= c.getEmail() %></td>
+                <td><%= c.getPhone() != null ? c.getPhone() : "Chưa có" %></td>
+                <td>
+                    <div class="action-group">
+                        <!-- Nút thăng cấp Admin -->
+                        <a href="${pageContext.request.contextPath}/admin/users?action=promote&id=<%= c.getCustomerID() %>" 
+                           class="btn-promote"
+                           onclick="return confirm('Bạn có chắc chắn muốn cấp quyền Admin cho khách hàng này không?')">Cấp Admin</a>
+                        
+                        <!-- Nút Xóa -->
+                        <a href="${pageContext.request.contextPath}/admin/users?action=delete&id=<%= c.getCustomerID() %>&type=customer" 
+                           class="btn-delete"
+                           onclick="return confirm('Bạn có chắc chắn muốn xóa khách hàng này?')">Xóa</a>
+                    </div>
+                </td>
+            </tr>
+            <% 
+                    }
+                } else {
+            %>
+            <tr>
+                <td colspan="5" style="text-align: center; color: #888;">Chưa có khách hàng nào đăng ký</td>
+            </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <!-- DANH SÁCH QUẢN TRỊ / NHÂN VIÊN -->
+    <div class="section-title">DANH SÁCH BAN QUẢN TRỊ / NHÂN VIÊN</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%">ID</th>
+                <th style="width: 38%">Tên quản trị viên</th>
+                <th style="width: 34%">Email</th>
+                <th style="width: 20%">Phép thuật</th>
             </tr>
         </thead>
         <tbody>
             <%
                 List<User> userList = (List<User>) request.getAttribute("userList");
-                if (userList != null) {
+                if (userList != null && !userList.isEmpty()) {
                     for (User u : userList) {
             %>
             <tr>
@@ -168,15 +262,21 @@
                 <td><strong><%= u.getName() %></strong></td>
                 <td><%= u.getEmail() %></td>
                 <td>
-                    <a href="${pageContext.request.contextPath}/admin/users?action=delete&id=<%= u.getId() %>" 
-                       class="btn-delete"
-                       onclick="return confirm('Bạn có chắc chắn muốn xóa người dùng này?')">Xóa</a>
+                    <div class="action-group">
+                        <a href="${pageContext.request.contextPath}/admin/users?action=delete&id=<%= u.getId() %>&type=user" 
+                           class="btn-delete"
+                           onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này?')">Xóa</a>
+                    </div>
                 </td>
             </tr>
             <% 
                     }
-                } 
+                } else {
             %>
+            <tr>
+                <td colspan="4" style="text-align: center; color: #888;">Không có tài khoản quản trị nào</td>
+            </tr>
+            <% } %>
         </tbody>
     </table>
 </div>
